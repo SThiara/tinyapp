@@ -25,15 +25,22 @@ app.post("/urls", (req, res) => {
   const randomString = generateRandomString();
   urlDatabase[randomString] = req.body.longURL;
   res.redirect(`/urls/${randomString}`);
-  // res.render(`/urls/${req.params.shortURL}`);
-  // res.send("Ok");         // Respond with 'Ok' (we will replace this)
 });
 
 app.post("/urls/:shortURL/delete", (req, res) => {
   delete urlDatabase[req.params.shortURL];
   res.redirect(`/urls`);
-  // res.render(`/urls/${req.params.shortURL}`);
-  // res.send("Ok");         // Respond with 'Ok' (we will replace this)
+});
+
+app.post("/urls/:shortURL/redirect", (req, res) => {
+  res.redirect(`/urls/${req.params.shortURL}`);
+});
+
+app.post("/urls/:id", (req, res) => {
+  for (shortURL in req.body) {
+    urlDatabase[shortURL] = req.body[shortURL]; // this might be really dumb, get a mentor to check it out
+  }
+  res.redirect(`/urls`);
 });
 
 app.get("/urls", (req, res) => {
