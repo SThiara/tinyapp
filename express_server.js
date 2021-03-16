@@ -11,6 +11,19 @@ const urlDatabase = {
   "9sm5xK": "http://www.google.com"
 };
 
+const users = { 
+  "userRandomID": {
+    id: "userRandomID", 
+    email: "user@example.com", 
+    password: "purple-monkey-dinosaur"
+  },
+ "user2RandomID": {
+    id: "user2RandomID", 
+    email: "user2@example.com", 
+    password: "dishwasher-funk"
+  }
+}
+
 const bodyParser = require("body-parser");
 app.use(bodyParser.urlencoded({extended: true}));
 
@@ -23,14 +36,34 @@ app.get('/', (req, res) => {
   res.send("Hello!");
 })
 
+app.post("/logout", (req, res) => {
+  res.clearCookie("username");
+  res.redirect(`/urls`);
+});
+
 app.post("/login", (req, res) => {
   res.cookie("username", req.body.username);
   res.redirect(`/urls`);
 });
 
-app.post("/logout", (req, res) => {
-  res.clearCookie("username");
-  res.redirect(`/urls`);
+app.post("/register", (req, res) => { 
+  if (req.body.email === "" || req.body.password === "") {
+    return res.send("Error code 400! No email or password entered!");  // return added because it was adding the user in anyway (could use an else here? Gary just told us not to)
+  }
+  for (user in users) {
+    if (req.body.email === users[user].email) {
+      return res.send("Error code 400! Email already taken!");  // consider creating a function to do this to DRY code up
+    }
+  }
+  const userID = generateRandomString();
+  users[userID] = {
+    id: userID,
+    email: req.body.email,
+    password: req.body.password
+  }
+  console.log(users);
+  res.cookie("username", userID);
+  res.redirect(`/urls`); 
 });
 
 app.post("/urls", (req, res) => {
@@ -63,23 +96,37 @@ app.get("/u/:shortURL", (req, res) => {
 app.get("/urls", (req, res) => {
   const templateVars = { 
     urls: { ...urlDatabase },
-    username: req.cookies["username"],
+    username: users[req.cookies["username"]]
   };
   res.render("urls_index", templateVars);
 });
 
 app.get("/urls/new", (req, res) => {
   const templateVars = { 
-    username: req.cookies["username"],
+    username: users[req.cookies["username"]]
   };
   res.render("urls_new", templateVars);
+});
+
+app.get("/login", (req, res) => {
+  const templateVars = { 
+    username: users[req.cookies["username"]]
+  };
+  res.render("urls_login", templateVars);
+});
+
+app.get("/register", (req, res) => {
+  const templateVars = { 
+    username: users[req.cookies["username"]]
+  };
+  res.render("urls_register", templateVars);
 });
 
 app.get("/urls/:shortURL", (req, res) => {
   const templateVars = { 
     shortURL: req.params.shortURL,
      longURL: urlDatabase[req.params.shortURL],
-     username: req.cookies["username"],
+     username: users[req.cookies["username"]]
   };
   res.render("urls_show", templateVars);
 });
