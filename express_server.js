@@ -50,7 +50,7 @@ app.post("/urls/:shortURL/redirect", (req, res) => {
 
 app.post("/urls/:id", (req, res) => {
   for (shortURL in req.body) {
-    urlDatabase[shortURL] = req.body[shortURL]; // this might be really dumb, get a mentor to check it out
+    urlDatabase[shortURL] = req.body[shortURL]; // this might be really dumb, get a mentor to check it out (is it by using req.params? the delete function might have a clue)
   }
   res.redirect(`/urls`);
 });
