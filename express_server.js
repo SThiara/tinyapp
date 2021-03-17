@@ -9,9 +9,14 @@ app.set('view engine', 'ejs');
 const bodyParser = require("body-parser");
 app.use(bodyParser.urlencoded({extended: true}));
 
-const urlDatabase = {
+/* const urlDatabase = {
   "b2xVn2": "http://www.lighthouselabs.ca",
   "9sm5xK": "http://www.google.com"
+}; */
+
+const urlDatabase = {
+  b6UTxQ: { longURL: "https://www.tsn.ca", userID: "aJ48lW" },
+  i3BoGr: { longURL: "https://www.google.ca", userID: "aJ48lW" }
 };
 
 const users = { 
@@ -78,7 +83,11 @@ app.post("/register", (req, res) => {
 
 app.post("/urls", (req, res) => {
   const randomString = generateRandomString();
-  urlDatabase[randomString] = req.body.longURL;
+  urlDatabase[randomString] = {
+    longURL: req.body.longURL,
+    userID: req.cookies["user_id"]
+  };
+  console.log(urlDatabase);
   res.redirect(`/urls/${randomString}`);
 });
 
@@ -92,14 +101,13 @@ app.post("/urls/:shortURL/redirect", (req, res) => {
 });
 
 app.post("/urls/:id", (req, res) => {
-  for (shortURL in req.body) {
-    urlDatabase[shortURL] = req.body[shortURL]; // this might be really dumb, get a mentor to check it out (is it by using req.params? the delete function might have a clue)
-  }
+  urlDatabase[req.params.id].longURL = req.body.longURL; // why is this different to every other one? Not quite sure
   res.redirect(`/urls`);
 });
 
 app.get("/u/:shortURL", (req, res) => {
-  const longURL = urlDatabase[req.params.shortURL]
+  // const longURL = urlDatabase[req.params.shortURL]
+  const longURL = urlDatabase[req.params.shortURL].longURL;
   res.redirect(longURL);
 });
 
@@ -112,6 +120,9 @@ app.get("/urls", (req, res) => {
 });
 
 app.get("/urls/new", (req, res) => {
+  if (req.cookies["user_id"] === undefined) {
+    return res.redirect("/login");
+  }
   const templateVars = { 
     user_id: users[req.cookies["user_id"]]
   };
@@ -135,7 +146,7 @@ app.get("/register", (req, res) => {
 app.get("/urls/:shortURL", (req, res) => {
   const templateVars = { 
     shortURL: req.params.shortURL,
-     longURL: urlDatabase[req.params.shortURL],
+     longURL: urlDatabase[req.params.shortURL].longURL,
      user_id: users[req.cookies["user_id"]]
   };
   res.render("urls_show", templateVars);
