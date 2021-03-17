@@ -13,13 +13,13 @@
     <div class="navbar-nav">
       <a class="nav-item nav-link" href="/register">Register</a>
     </div>
-    <% if (username === undefined) { %>
+    <% if (user_id === undefined) { %>
       <div class="navbar-nav">
         <a class="nav-item nav-link" href="/login">Login</a>
       </div>
       <% } else { %>
         <div>
-          <a class="nav-item nav-link"> User logged in: <%= username.email %> </a>  <!-- a little ugly -->
+          <a class="nav-item nav-link"> User logged in: <%= user_id.email %> </a>  <!-- a little ugly -->
       </div>
       <div>
       <form method="POST" action="/logout">
