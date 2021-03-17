@@ -1,18 +1,15 @@
 const express = require('express');
 const cookieParser = require('cookie-parser')
+const bodyParser = require("body-parser");
+const bcrypt = require('bcrypt');
 const app = express();
 const PORT = 8080;
 
-app.use(cookieParser());
 app.set('view engine', 'ejs');
 
-const bodyParser = require("body-parser");
+app.use(cookieParser());
 app.use(bodyParser.urlencoded({extended: true}));
 
-/* const urlDatabase = {
-  "b2xVn2": "http://www.lighthouselabs.ca",
-  "9sm5xK": "http://www.google.com"
-}; */
 
 const urlDatabase = {
   b6UTxQ: { longURL: "https://www.tsn.ca", userID: "aJ48lW" },
@@ -59,7 +56,7 @@ app.post("/logout", (req, res) => {
 app.post("/login", (req, res) => {
   for (user in users) {
     if (req.body.email === users[user].email) {
-      if (req.body.password === users[user].password) {
+      if (bcrypt.compareSync(req.body.password, users[user].password)) {
         res.cookie("user_id", users[user].id);
         //res.cookie(users[user].id, users[user].id);
         //res.cookie(user_id, users[user].id);
@@ -84,7 +81,7 @@ app.post("/register", (req, res) => {
   users[userID] = {
     id: userID,
     email: req.body.email,
-    password: req.body.password
+    password: bcrypt.hashSync(req.body.password, 10)  // using bcrypt here now
   }
   res.cookie("user_id", userID);
   //res.cookie(users[user].id, users[user].id);
