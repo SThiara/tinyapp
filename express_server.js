@@ -37,6 +37,16 @@ function generateRandomString() {
   return r;
 }
 
+function urlsForUser(id) {
+  const matchedURLs = {};
+  for (url in urlDatabase) {
+    if (id === urlDatabase[url].userID) {
+      matchedURLs[url] = { ...urlDatabase[url] };
+    }
+  }
+  return matchedURLs;
+}
+
 app.get('/', (req, res) => {
   res.send("Hello!");
 })
@@ -87,12 +97,13 @@ app.post("/urls", (req, res) => {
     longURL: req.body.longURL,
     userID: req.cookies["user_id"]
   };
-  console.log(urlDatabase);
   res.redirect(`/urls/${randomString}`);
 });
 
 app.post("/urls/:shortURL/delete", (req, res) => {
-  delete urlDatabase[req.params.shortURL];
+  if (req.cookies["user_id"] === urlDatabase[req.params.shortURL].userID) {
+    delete urlDatabase[req.params.shortURL]
+  };
   res.redirect(`/urls`);
 });
 
@@ -101,7 +112,10 @@ app.post("/urls/:shortURL/redirect", (req, res) => {
 });
 
 app.post("/urls/:id", (req, res) => {
-  urlDatabase[req.params.id].longURL = req.body.longURL; // why is this different to every other one? Not quite sure
+  // console.log("which page is this");  // this function is for editing an existing longURL
+  if (req.cookies["user_id"] === urlDatabase[req.params.id].userID) {
+  urlDatabase[req.params.id].longURL = req.body.longURL;        // why is this different to every other one? Not quite sure
+  } 
   res.redirect(`/urls`);
 });
 
@@ -113,7 +127,7 @@ app.get("/u/:shortURL", (req, res) => {
 
 app.get("/urls", (req, res) => {
   const templateVars = { 
-    urls: { ...urlDatabase },
+    urls: { ...urlsForUser(req.cookies["user_id"]) },
     user_id: users[req.cookies["user_id"]]
   };
   res.render("urls_index", templateVars);
@@ -144,6 +158,9 @@ app.get("/register", (req, res) => {
 });
 
 app.get("/urls/:shortURL", (req, res) => {
+  if (req.cookies["user_id"] !== urlDatabase[req.params.shortURL].userID) {
+    return res.render("urls_show", {shortURL: undefined, longURL: undefined, user_id: undefined}); // used as a placeholder to relay that user is not logged in
+  }
   const templateVars = { 
     shortURL: req.params.shortURL,
      longURL: urlDatabase[req.params.shortURL].longURL,
@@ -154,10 +171,6 @@ app.get("/urls/:shortURL", (req, res) => {
 
 app.get("/urls.json", (req, res) => {
   res.json(urlDatabase);
-});
-
-app.get("/hello", (req, res) => {
-  res.send("<html><body>Hello <b>World</b></body></html>\n");
 });
 
 app.listen(PORT, () => {

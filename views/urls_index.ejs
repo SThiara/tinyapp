@@ -22,6 +22,9 @@
         </tr>
       </thead>
       <tbody>
+        <% if (Object.values(urls).length === 0) { %>
+          Message or prompt suggesting that the user sign in <!-- clean this up later -->
+        <% } %>
         <% for(let url in urls) { %>
           <tr>
             <td><%= url %></td>

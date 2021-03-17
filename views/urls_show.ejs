@@ -8,6 +8,9 @@
 </head>
 
 <body>
+  <% if (shortURL === undefined) { %>
+    Message or prompt suggesting that the user sign in <!-- clean this up later -->
+  <% } else { %>
   <div class="card text-center">
       <div class="card-header"></div>
       <div class="card-body">
@@ -17,14 +20,14 @@
     <div class="card-footer text-muted">
       <h5 class="card-text"> Edit </h5> 
     </div>
-    <form class="form-center" action="/urls/<%= shortURL %>" method="POST"> <!-- that :id should be the shortURL? or something else, then change the name to longURL-->
+    <form class="form-center" action="/urls/<%= shortURL %>" method="POST"> 
       <div class="form-group mb-2">
         <label for="longURL">New URL:</label>
-        <input class="form-center" type="text" name="longURL" placeholder="http://" style="width: 250px; margin: 1em"> <!-- ask about better way to do this-->
+        <input class="form-center" type="text" name="longURL" placeholder="http://" style="width: 250px; margin: 1em"> 
         <button type="submit" class="btn btn-primary">Submit</button>
       </div>
     </form>
-    
+    <% } %>
   </div>
   <!-- Bootstrap JS -->
   <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
