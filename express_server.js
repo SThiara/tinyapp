@@ -1,66 +1,27 @@
 const express = require('express');
-// const cookieParser = require('cookie-parser')
 const cookieSession = require('cookie-session');
 const bodyParser = require("body-parser");
+
 const { getUserByEmail } = require('./helpers');
+const { urlsForUser } = require('./helpers');
+const { generateRandomString } = require('./helpers');
+
 const bcrypt = require('bcrypt');
 const app = express();
 const PORT = 8080;
 
 app.set('view engine', 'ejs');
-
-// app.use(cookieParser());
 app.use(cookieSession({
   name: 'session',
   keys: ['key1']
 }));
 app.use(bodyParser.urlencoded({extended: true}));
 
-
-const urlDatabase = {
-  b6UTxQ: { longURL: "https://www.tsn.ca", userID: "aJ48lW" },
-  i3BoGr: { longURL: "https://www.google.ca", userID: "aJ48lW" }
-};
-
-const users = {
-  "userRandomID": {
-    id: "userRandomID",
-    email: "user@example.com",
-    password: "purple-monkey-dinosaur"
-  },
-  "user2RandomID": {
-    id: "user2RandomID",
-    email: "user2@example.com",
-    password: "dishwasher-funk"
-  }
-};
-
-const generateRandomString = function() {
-  const r = Math.random().toString(36).substr(2, 6);
-  return r;
-};
-
-const urlsForUser = function(id) {
-  const matchedURLs = {};
-  for (let url in urlDatabase) {
-    if (id === urlDatabase[url].userID) {
-      matchedURLs[url] = { ...urlDatabase[url] };
-    }
-  }
-  return matchedURLs;
-};
-
-/* const getUserByEmail = function(email, database) {
-  for (user in database) {
-    if (email === database[user].email) {
-      return database[user];
-    }
-  }
-  return false;
-}; */
+const urlDatabase = {}; // contains url objects keyed to their shortened URL with the objects containing the associated longURL and userID that created it
+const users = {}; // contains user objects keyed to their randomized ID with those objects contianing their id, email, and password
 
 app.get('/', (req, res) => {
-  for (let userID of Object.keys(users)) {
+  for (const userID of Object.keys(users)) {
     if (req.session.user_id === userID) {
       res.redirect(`/urls`);
     }
@@ -167,7 +128,7 @@ app.get("/u/:shortURL", (req, res) => {
 
 app.get("/urls", (req, res) => {
   const templateVars = {
-    urls: { ...urlsForUser(req.session.user_id) },
+    urls: { ...urlsForUser(req.session.user_id, urlDatabase) },
     user_id: users[req.session.user_id]
   };
   res.render("urls_index", templateVars);
