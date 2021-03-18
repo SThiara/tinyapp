@@ -97,7 +97,8 @@ app.post("/urls", (req, res) => {
   }
   urlDatabase[randomString] = {
     longURL: req.body.longURL,
-    userID: req.session.user_id
+    userID: req.session.user_id,
+    visitCount: 0
   };
   res.redirect(`/urls/${randomString}`);
 });
@@ -127,6 +128,7 @@ app.put("/urls/:id", (req, res) => {
 app.get("/u/:shortURL", (req, res) => {
   // const longURL = urlDatabase[req.params.shortURL]
   const longURL = urlDatabase[req.params.shortURL].longURL;
+  urlDatabase[req.params.shortURL].visitCount++;
   res.redirect(longURL);
 });
 
@@ -172,7 +174,8 @@ app.get("/urls/:shortURL", (req, res) => {
   const templateVars = {
     shortURL: req.params.shortURL,
     longURL: urlDatabase[req.params.shortURL].longURL,
-    user_id: users[req.session.user_id]
+    user_id: users[req.session.user_id],
+    visitCount: urlDatabase[req.params.shortURL].visitCount
   };
   res.render("urls_show", templateVars);
 });
