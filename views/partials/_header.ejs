@@ -22,7 +22,7 @@
           <a class="nav-item nav-link"> User logged in: <%= user_id.email %> </a>  <!-- a little ugly -->
       </div>
       <div>
-      <form method="POST" action="/logout">
+      <form method="POST" action="/logout?_method=DELETE"> <!--delete, maybe-->
         <div class="form-group mb-2">
           <button type="submit" class="btn btn-primary">logout</button>
         </div>

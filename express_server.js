@@ -1,6 +1,7 @@
 const express = require('express');
 const cookieSession = require('cookie-session');
 const bodyParser = require("body-parser");
+const methodOverride = require('method-override')
 
 const { getUserByEmail } = require('./helpers');
 const { urlsForUser } = require('./helpers');
@@ -16,6 +17,8 @@ app.use(cookieSession({
   keys: ['key1']
 }));
 app.use(bodyParser.urlencoded({extended: true}));
+// override with POST having ?_method=DELETE
+app.use(methodOverride('_method'));
 
 const urlDatabase = {}; // contains url objects keyed to their shortened URL with the objects containing the associated longURL and userID that created it
 const users = {}; // contains user objects keyed to their randomized ID with those objects contianing their id, email, and password
@@ -29,19 +32,20 @@ app.get('/', (req, res) => {
   res.redirect(`/login`);
 });
 
-app.post("/logout", (req, res) => {
+app.delete("/logout", (req, res) => {
   req.session = null;
   // res.clearCookie("user_id");
   res.redirect(`/urls`);
 });
 
-app.post("/login", (req, res) => {
+app.put("/login", (req, res) => {
 /*   if (getUserByEmail(req.body.email, users)) {
     return res.send("Error code 400! Email not found in list of registered users!");
   } */
   const user = getUserByEmail(req.body.email, users);
   if (!user) {
     return res.send("Error code 400! Email not found in list of registered users!");
+    //res.status(400).send("Email not found in list of registered users!") // use this instead?
   }
   if (bcrypt.compareSync(req.body.password, user.password)) {
     req.session.user_id = users[user.id].id;      // using req now instead of res?
@@ -98,18 +102,18 @@ app.post("/urls", (req, res) => {
   res.redirect(`/urls/${randomString}`);
 });
 
-app.post("/urls/:shortURL/delete", (req, res) => {
+app.delete("/urls/:shortURL/delete", (req, res) => {
   if (req.session.user_id === urlDatabase[req.params.shortURL].userID) {
     delete urlDatabase[req.params.shortURL];
   }
   res.redirect(`/urls`);
 });
 
-app.post("/urls/:shortURL/redirect", (req, res) => {
+app.put("/urls/:shortURL/redirect", (req, res) => {
   res.redirect(`/urls/${req.params.shortURL}`);
 });
 
-app.post("/urls/:id", (req, res) => {
+app.put("/urls/:id", (req, res) => {
   if (req.session.user_id === undefined) {
     return res.send("Error! User not logged in, post permission denied!");
   }

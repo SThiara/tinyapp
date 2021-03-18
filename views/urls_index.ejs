@@ -30,14 +30,14 @@
             <td><%= url %></td>
             <td><%= urls[url].longURL %></td>
             <td>
-              <form method="POST" action="/urls/<%=url%>/redirect">
+              <form method="POST" action="/urls/<%=url%>/redirect?_method=PUT">
                 <div class="form-group mb-2">
                   <button type="submit" class="btn btn-primary">Edit</button>
                 </div>
               </form>
             </td>
             <td>
-            <form method="POST" action="/urls/<%=url%>/delete">
+            <form method="POST" action="/urls/<%=url%>/delete?_method=DELETE">
               <div class="form-group mb-2">
                 <button type="submit" class="btn btn-primary">Delete</button>
               </div>
