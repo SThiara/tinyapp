@@ -44,15 +44,15 @@ app.put("/login", (req, res) => {
   } */
   const user = getUserByEmail(req.body.email, users);
   if (!user) {
-    return res.send("Error code 400! Email not found in list of registered users!");
-    //res.status(400).send("Email not found in list of registered users!") // use this instead?
+    // return res.send("Error code 400! Email not found in list of registered users!");
+    return res.status(400).send("Email not found in list of registered users!") // use this instead?
   }
   if (bcrypt.compareSync(req.body.password, user.password)) {
     req.session.user_id = users[user.id].id;      // using req now instead of res?
     // res.cookie("user_id", users[user].id);
     return res.redirect(`/urls`);
   }
-  return res.send("Error code 400! Incorrect password!");
+  return res.status(400).send("Incorrect password!");
 
   /* for (user in users) {
     if (req.body.email === users[user].email) {
@@ -69,10 +69,10 @@ app.put("/login", (req, res) => {
 
 app.post("/register", (req, res) => {
   if (req.body.email === "" || req.body.password === "") {
-    return res.send("Error code 400! No email or password entered!");  // return added because it was adding the user in anyway (could use an else here? Gary just told us not to)
+    return res.status(400).send("No email or password entered!");  // return added because it was adding the user in anyway (could use an else here? Gary just told us not to)
   }
   if (getUserByEmail(req.body.email, users)) {
-    return res.send("Error code 400! Email already taken!");
+    return res.status(400).send("Email already taken!");
   }
   /*  for (user in users) {
     if (req.body.email === users[user].email) {
@@ -93,7 +93,7 @@ app.post("/register", (req, res) => {
 app.post("/urls", (req, res) => {
   const randomString = generateRandomString();
   if (req.session.user_id === undefined) {
-    return res.send("Error! User not logged in, post permission denied!");
+    return res.status(400).send("User not logged in, post permission denied!");
   }
   urlDatabase[randomString] = {
     longURL: req.body.longURL,
@@ -109,13 +109,13 @@ app.delete("/urls/:shortURL/delete", (req, res) => {
   res.redirect(`/urls`);
 });
 
-app.put("/urls/:shortURL/redirect", (req, res) => {
+app.get("/urls/:shortURL/redirect", (req, res) => { // to redirect edit requests made by hitting the edit button on /urls
   res.redirect(`/urls/${req.params.shortURL}`);
 });
 
 app.put("/urls/:id", (req, res) => {
   if (req.session.user_id === undefined) {
-    return res.send("Error! User not logged in, post permission denied!");
+    return res.status(400).send("User not logged in, post permission denied!");
   }
   // console.log("which page is this");  // this function is for editing an existing longURL
   if (req.session.user_id === urlDatabase[req.params.id].userID) {
@@ -164,7 +164,7 @@ app.get("/register", (req, res) => {
 
 app.get("/urls/:shortURL", (req, res) => {
   if (!(urlDatabase[req.params.shortURL])) {
-    return res.send("Error! URL for given ID does not exist!");
+    return res.status(400).send("URL for given ID does not exist!");
   }
   if (req.session.user_id !== urlDatabase[req.params.shortURL].userID) {
     return res.render("urls_show", {shortURL: undefined, longURL: undefined, user_id: undefined}); // used as a placeholder to relay that user is not logged in
