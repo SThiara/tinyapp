@@ -22,7 +22,7 @@
         </tr>
       </thead>
       <tbody>
-        <% if (Object.values(urls).length === 0) { %>
+        <% if /* (Object.values(urls).length === 0) */ (user_id === undefined) { %>
           Message or prompt suggesting that the user sign in <!-- clean this up later -->
         <% } %>
         <% for(let url in urls) { %>
