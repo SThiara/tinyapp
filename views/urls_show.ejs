@@ -8,7 +8,7 @@
 </head>
 
 <body>
-  <% if (shortURL === undefined) { %>
+  <% if (correctUser === false) { %>
     Message or prompt suggesting that the user sign in <!-- clean this up later -->
   <% } else { %>
   <div class="card text-center">
@@ -18,7 +18,12 @@
         <form action="/u/<%= shortURL %>" method="GET">
         <p class="card-text">Short URL: <a href="/u/<%= shortURL %>"><%= shortURL %></a></p>
         </form>
-        <p class="card-text">Visit count: "<%= visitCount %>"</p>
+        <p class="card-text">URL number of visits: "<%= visitCount %>"</p>
+        <p class="card-text">Unique visitors: "<%= uniqueCount %>"</p>
+        <p class="card-text">URL visits</p>
+        <% for (const trackedVisit of visitTimes) { %>
+          <p class="card-text">ID "<%= trackedVisit.visitor_id %>" visited on "<%= trackedVisit.time_of_visit %>"</p>
+        <% } %>
       </div>
     <div class="card-footer text-muted">
       <h5 class="card-text"> Edit </h5> 
