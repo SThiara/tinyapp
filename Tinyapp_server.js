@@ -25,19 +25,6 @@ app.use(cookieSession({
 const urlDatabase = {}; // contains url objects keyed to their shortURL; those objects contain the longURL, the userID that created it, a visit count, an array of all unique visitors, and an array of objects that list the visitor and time
 const users = {}; // contains user objects keyed to their randomized ID; those objects contain that id along with an email and password
 
-app.get('/', (req, res) => {  // if a valid user is logged-in, renders the homepage; otherwise, renders the login page
-  for (const userID of Object.keys(users)) {
-    if (req.session.user_id === userID) {
-      return res.redirect(`/urls`);
-    }
-  }
-  res.redirect(`/login`);
-});
-
-app.delete("/logout", (req, res) => {
-  req.session = null;
-  res.redirect(`/urls`);
-});
 
 app.put("/login", (req, res) => { // logs a user in if the correct email and password are provided
   const user = getUserByEmail(req.body.email, users);
@@ -53,6 +40,16 @@ app.put("/login", (req, res) => { // logs a user in if the correct email and pas
   return res.status(400).render("urls_error", { 
     user_id: users[req.session.user_id],
     errorMessage: "Incorrect password!" });
+});
+
+app.put("/urls/:id", (req, res) => {  // this is for editing the longURL associated with a particular shortURL
+  if (req.session.user_id === undefined) {
+    return res.status(400).send("User not logged in, post permission denied!"); // this part is to deny curl workarounds...probably
+  }
+  if (req.session.user_id === urlDatabase[req.params.id].userID) {  
+    urlDatabase[req.params.id].longURL = req.body.longURL;
+  }
+  res.redirect(`/urls`);
 });
 
 app.post("/register", (req, res) => { // registers a user if they enter a "valid" email (very loose definition for valid) that isn't already taken and a password field that isn't empty
@@ -98,18 +95,23 @@ app.delete("/urls/:shortURL/delete", (req, res) => {  // this deletes URLs from 
   res.redirect(`/urls`);
 });
 
-app.get("/urls/:shortURL/redirect", (req, res) => { // to redirect edit requests made by hitting the edit button on /urls
-  res.redirect(`/urls/${req.params.shortURL}`);
+app.delete("/logout", (req, res) => {
+  req.session = null;
+  res.redirect(`/urls`);
 });
 
-app.put("/urls/:id", (req, res) => {  // this is for editing the longURL associated with a particular shortURL
-  if (req.session.user_id === undefined) {
-    return res.status(400).send("User not logged in, post permission denied!"); // this part is to deny curl workarounds...probably
-  }
-  if (req.session.user_id === urlDatabase[req.params.id].userID) {  
-    urlDatabase[req.params.id].longURL = req.body.longURL;
-  }
-  res.redirect(`/urls`);
+app.get("/login", (req, res) => {
+  const templateVars = {
+    user_id: users[req.session.user_id]
+  };
+  res.render("urls_login", templateVars);
+});
+
+app.get("/register", (req, res) => {
+  const templateVars = {
+    user_id: users[req.session.user_id]
+  };
+  res.render("urls_register", templateVars);
 });
 
 app.get("/u/:shortURL", (req, res) => { // when a Tinyapp url gets visited, a few things happen:
@@ -131,14 +133,6 @@ app.get("/u/:shortURL", (req, res) => { // when a Tinyapp url gets visited, a fe
   res.redirect(urlDatabase[req.params.shortURL].longURL); // send the user to the requested website
 });
 
-app.get("/urls", (req, res) => {  // displays a list of urls created by a particular user
-  const templateVars = {
-    urls: { ...urlsForUser(req.session.user_id, urlDatabase) },
-    user_id: users[req.session.user_id]
-  };
-  res.render("urls_index", templateVars);
-});
-
 app.get("/urls/new", (req, res) => {  // allows a logged-in user to access the page where a new shortURL can be created
   if (req.session.user_id === undefined) {
     return res.redirect("/login");
@@ -149,18 +143,8 @@ app.get("/urls/new", (req, res) => {  // allows a logged-in user to access the p
   res.render("urls_new", templateVars);
 });
 
-app.get("/login", (req, res) => {
-  const templateVars = {
-    user_id: users[req.session.user_id]
-  };
-  res.render("urls_login", templateVars);
-});
-
-app.get("/register", (req, res) => {
-  const templateVars = {
-    user_id: users[req.session.user_id]
-  };
-  res.render("urls_register", templateVars);
+app.get("/urls/:shortURL/redirect", (req, res) => { // to redirect edit requests made by hitting the edit button on /urls
+  res.redirect(`/urls/${req.params.shortURL}`);
 });
 
 app.get("/urls/:shortURL", (req, res) => {  // loads the edit page for a shortURL if it exists and if the user that created it is logged in; if not, it doesn't play any details about the URL and displays a line informing the user to log in
@@ -183,6 +167,23 @@ app.get("/urls/:shortURL", (req, res) => {  // loads the edit page for a shortUR
     return res.render("urls_show", templateVars);
   }
   res.render("urls_show", templateVars);
+});
+
+app.get("/urls", (req, res) => {  // displays a list of urls created by a particular user
+  const templateVars = {
+    urls: { ...urlsForUser(req.session.user_id, urlDatabase) },
+    user_id: users[req.session.user_id]
+  };
+  res.render("urls_index", templateVars);
+});
+
+app.get('/', (req, res) => {  // if a valid user is logged-in, renders the homepage; otherwise, renders the login page
+  for (const userID of Object.keys(users)) {
+    if (req.session.user_id === userID) {
+      return res.redirect(`/urls`);
+    }
+  }
+  res.redirect(`/login`);
 });
 
 app.get("/urls.json", (req, res) => { // I'm pretty sure I don't need this
