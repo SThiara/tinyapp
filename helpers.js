@@ -79,7 +79,10 @@ const getDate = function() {
   if (hour < 0) {
     hour += 24;
   }
-  if (hour > 11) {
+  if (hour === 12) {
+    am_pm = "p.m.";
+  }
+  if (hour > 12) {
     hour -= 12;
     am_pm = "p.m.";
   }
@@ -87,7 +90,10 @@ const getDate = function() {
     hour = 12;
   }
 
-  const minute = today.getMinutes();
+  let minute = today.getMinutes();
+  if (minute < 10) {
+    minute = `0${minute}`;
+  }
   
   return (`${month}/${day}/${year} at ${hour}:${minute} ${am_pm}`);
 }

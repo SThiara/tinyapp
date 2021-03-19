@@ -31,7 +31,7 @@ app.put("/login", (req, res) => { // logs a user in if the correct email and pas
   if (!user) {
     return res.status(400).render("urls_error", { 
       user_id: users[req.session.user_id],
-      errorMessage: "Email not found in list of registered users!" });
+      error_message: "Email not found in list of registered users!" });
   }
   if (bcrypt.compareSync(req.body.password, user.password)) {
     req.session.user_id = users[user.id].id;
@@ -39,7 +39,7 @@ app.put("/login", (req, res) => { // logs a user in if the correct email and pas
   }
   return res.status(400).render("urls_error", { 
     user_id: users[req.session.user_id],
-    errorMessage: "Incorrect password!" });
+    error_message: "Incorrect password!" });
 });
 
 app.put("/urls/:id", (req, res) => {  // this is for editing the longURL associated with a particular shortURL
@@ -56,12 +56,12 @@ app.post("/register", (req, res) => { // registers a user if they enter a "valid
   if (req.body.email === "" || req.body.password === "") {
     return res.status(400).render("urls_error", { 
       user_id: users[req.session.user_id],
-      errorMessage: "No email or password entered!" });
+      error_message: "No email or password entered!" });
   }
   if (getUserByEmail(req.body.email, users)) {
     return res.status(400).render("urls_error", { 
       user_id: users[req.session.user_id],
-      errorMessage: "Email already taken!" });
+      error_message: "Email already taken!" });
   }
   const userID = generateRandomString();
   users[userID] = {
@@ -81,9 +81,9 @@ app.post("/urls", (req, res) => { // this generates a shortURL and creates a url
   urlDatabase[randomString] = {
     longURL: req.body.longURL,
     userID: req.session.user_id,
-    visitCount: 0,
-    uniqueVisitors: [],
-    visitTimes: []
+    visit_count: 0,
+    unique_visitors: [],
+    visit_times: []
   };
   res.redirect(`/urls/${randomString}`);
 });
@@ -115,21 +115,26 @@ app.get("/register", (req, res) => {
 });
 
 app.get("/u/:shortURL", (req, res) => { // when a Tinyapp url gets visited, a few things happen:
+  if ((urlDatabase[req.params.shortURL] === undefined)) {
+    return res.status(400).render("urls_error", { 
+      user_id: users[req.session.user_id],
+      error_message: "That is not a valid link!" });
+    }
   let uniqueVisitorID;
-  urlDatabase[req.params.shortURL].visitCount++;  // the raw visit count is incremented
   if (req.cookies.uniqueTracker === undefined) {  // a unique visitor is defined as any request coming from the same browser; visiting the link while logged in to Tinyapp with the account that created it, or to a different account, or not logged in at all will collectively still count as the same unique visitor if those requests are all made from the same browser
     uniqueVisitorID = generateRandomString(); // if the url hasn't been visited from a particular browser, a cookie is created and assigned
     res.cookie("uniqueTracker", uniqueVisitorID);
   } else {
     uniqueVisitorID = req.cookies.uniqueTracker;
   };
-  if (!(urlDatabase[req.params.shortURL].uniqueVisitors.includes(uniqueVisitorID))) { // when a Tinyapp url is used, the stored cookie value needs to be added to that particular URL's array of unique visitor IDs if it hasn't already
-    urlDatabase[req.params.shortURL].uniqueVisitors.push(uniqueVisitorID);
+  if (!(urlDatabase[req.params.shortURL].unique_visitors.includes(uniqueVisitorID))) { // when a Tinyapp url is used, the stored cookie value needs to be added to that particular URL's array of unique visitor IDs if it hasn't already
+    urlDatabase[req.params.shortURL].unique_visitors.push(uniqueVisitorID);
   };
-  urlDatabase[req.params.shortURL].visitTimes.push({  // add details of the visitor and time to the url's array of visits
+  urlDatabase[req.params.shortURL].visit_times.push({  // add details of the visitor and time to the url's array of visits
     visitor_id: uniqueVisitorID,
     time_of_visit: getDate()
   })
+  urlDatabase[req.params.shortURL].visit_count++;  // the raw visit count is incremented
   res.redirect(urlDatabase[req.params.shortURL].longURL); // send the user to the requested website
 });
 
@@ -151,16 +156,16 @@ app.get("/urls/:shortURL", (req, res) => {  // loads the edit page for a shortUR
   if (!(urlDatabase[req.params.shortURL])) {
     return res.status(400).render("urls_error", { 
       user_id: users[req.session.user_id],
-      errorMessage: "URL for given ID does not exist!" });
+      error_message: "URL for given ID does not exist!" });
   }
   const templateVars = {
     correctUser: true,
     shortURL: req.params.shortURL,
     longURL: urlDatabase[req.params.shortURL].longURL,
     user_id: users[req.session.user_id],
-    visitCount: urlDatabase[req.params.shortURL].visitCount,
-    uniqueCount: urlDatabase[req.params.shortURL].uniqueVisitors.length,
-    visitTimes: [ ...urlDatabase[req.params.shortURL].visitTimes ]
+    visit_count: urlDatabase[req.params.shortURL].visit_count,
+    unique_count: urlDatabase[req.params.shortURL].unique_visitors.length,
+    visit_times: [ ...urlDatabase[req.params.shortURL].visit_times ]
   };
   if (req.session.user_id !== urlDatabase[req.params.shortURL].userID) {
     templateVars.correctUser = false;
