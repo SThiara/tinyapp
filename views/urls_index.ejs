@@ -11,7 +11,13 @@
 </head>
 <body>
   <main style="margin: 1em;">
-    <h3>My URLs</h3>
+    <h3>
+      <% if (user_id === undefined) { %>
+        Please log in or register for an account to bear witness to a list of created Tinyurls!
+      <% } else { %>
+      My URLs
+      <% } %>
+    </h3>
     <table class="table">
       <thead>
         <tr>
@@ -22,9 +28,6 @@
         </tr>
       </thead>
       <tbody>
-        <% if /* (Object.values(urls).length === 0) */ (user_id === undefined) { %>
-          Message or prompt suggesting that the user sign in <!-- clean this up later -->
-        <% } %>
         <% for(let url in urls) { %>
           <tr>
             <td><%= url %></td>

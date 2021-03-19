@@ -7,6 +7,7 @@ const methodOverride = require('method-override')
 const { getUserByEmail } = require('./helpers');
 const { urlsForUser } = require('./helpers');
 const { generateRandomString } = require('./helpers');
+const { getDate } = require('./helpers');
 
 const bcrypt = require('bcrypt');
 const PORT = 8080;
@@ -43,21 +44,34 @@ app.delete("/logout", (req, res) => {
 app.put("/login", (req, res) => { // logs a user in if the correct email and password are provided
   const user = getUserByEmail(req.body.email, users);
   if (!user) {
-    return res.status(400).send("Email not found in list of registered users!")
+    return res.status(400).render("urls_error", { 
+      user_id: users[req.session.user_id],
+      errorMessage: "Email not found in list of registered users!" });
+    // return res.status(400).send("Email not found in list of registered users!")
   }
   if (bcrypt.compareSync(req.body.password, user.password)) {
     req.session.user_id = users[user.id].id;
     return res.redirect(`/urls`);
   }
-  return res.status(400).send("Incorrect password!");
+  return res.status(400).render("urls_error", { 
+    user_id: users[req.session.user_id],
+    errorMessage: "Incorrect password!" });
+  // return res.status(400).send("Email not found in list of registered users!")
+
+  // return res.status(400).render("urls_error", { errorMessage: "Incorrect password!" });
+  // return res.status(400).send("Incorrect password!");
 });
 
 app.post("/register", (req, res) => { // registers a user if they enter a "valid" email (very loose definition for valid) that isn't already taken and a password field that isn't empty
   if (req.body.email === "" || req.body.password === "") {
-    return res.status(400).send("No email or password entered!");
+    return res.status(400).render("urls_error", { 
+      user_id: users[req.session.user_id],
+      errorMessage: "No email or password entered!" });
   }
   if (getUserByEmail(req.body.email, users)) {
-    return res.status(400).send("Email already taken!");
+    return res.status(400).render("urls_error", { 
+      user_id: users[req.session.user_id],
+      errorMessage: "Email already taken!" });
   }
   const userID = generateRandomString();
   users[userID] = {
@@ -119,8 +133,9 @@ app.get("/u/:shortURL", (req, res) => { // when a Tinyapp url gets visited, a fe
   };
   urlDatabase[req.params.shortURL].visitTimes.push({  // add details of the visitor and time to the url's array of visits
     visitor_id: uniqueVisitorID,
-    time_of_visit: Date()
+    time_of_visit: getDate()
   })
+  console.log(urlDatabase[req.params.shortURL].visitTimes[0].time_of_visit);
   res.redirect(urlDatabase[req.params.shortURL].longURL); // send the user to the requested website
 });
 
@@ -158,7 +173,9 @@ app.get("/register", (req, res) => {
 
 app.get("/urls/:shortURL", (req, res) => {  // loads the edit page for a shortURL if it exists and if the user that created it is logged in
   if (!(urlDatabase[req.params.shortURL])) {
-    return res.status(400).send("URL for given ID does not exist!");
+    return res.status(400).render("urls_error", { 
+      user_id: users[req.session.user_id],
+      errorMessage: "URL for given ID does not exist!" });
   }
   const templateVars = {
     correctUser: true,

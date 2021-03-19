@@ -9,7 +9,7 @@
 
 <body>
   <% if (correctUser === false) { %>
-    Message or prompt suggesting that the user sign in <!-- clean this up later -->
+    <h3>This URL belongs to a different user - log in to that profile to access edit options</h3> <!-- clean this up later -->
   <% } else { %>
   <div class="card text-center">
       <div class="card-header"></div>
@@ -18,8 +18,9 @@
         <form action="/u/<%= shortURL %>" method="GET">
         <p class="card-text">Short URL: <a href="/u/<%= shortURL %>"><%= shortURL %></a></p>
         </form>
-        <p class="card-text">URL number of visits: "<%= visitCount %>"</p>
-        <p class="card-text">Unique visitors: "<%= uniqueCount %>"</p>
+        <p></p>
+        <p class="card-text">URL number of visits: <%= visitCount %></p>
+        <p class="card-text">Unique visitors: <%= uniqueCount %></p>
         <p class="card-text">URL visits</p>
         <% for (const trackedVisit of visitTimes) { %>
           <p class="card-text">ID "<%= trackedVisit.visitor_id %>" visited on "<%= trackedVisit.time_of_visit %>"</p>
@@ -28,7 +29,7 @@
     <div class="card-footer text-muted">
       <h5 class="card-text"> Edit </h5> 
     </div>
-    <form class="form-center" action="/urls/<%= shortURL %>?_method=PUT" method="POST"> <!--put-->
+    <form class="form-center" action="/urls/<%= shortURL %>?_method=PUT" method="POST">
       <div class="form-group mb-2">
         <label for="longURL">New URL:</label>
         <input class="form-center" type="text" name="longURL" placeholder="http://" style="width: 250px; margin: 1em"> 
